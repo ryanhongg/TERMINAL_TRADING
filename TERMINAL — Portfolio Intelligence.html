@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TERMINAL — Portfolio Intelligence</title>
+<style>
+:root{--bg:#0e0f11;--s1:#17191c;--s2:#1f2226;--bd:#2c3036;--tx:#e8eaed;--mu:#8b9199;--g:#3fb67a;--r:#e5534b;--ac:#6aa4ff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f5f6f8;--s1:#fff;--s2:#eef0f3;--bd:#d9dde3;--tx:#16181c;--mu:#5d6570;--g:#1a8f57;--r:#c93b34;--ac:#2563eb;color-scheme:light}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.logo{font-weight:700;letter-spacing:.18em}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav button{background:none;border:0;color:var(--mu);padding:7px 12px;border-radius:6px;cursor:pointer;font:inherit}
+nav button.on{background:var(--s2);color:var(--tx)}
+main{max-width:1180px;margin:0 auto;padding:20px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px}
+.lbl{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.big{font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:4px}
+.up{color:var(--g)}.dn{color:var(--r)}.mu{color:var(--mu)}
+h2{font-size:15px;margin:22px 0 10px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{color:var(--mu);font-weight:500;font-size:12px}th:first-child,td:first-child{text-align:left}
+input,select,textarea{background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:6px;padding:7px 8px;font:inherit;min-width:0}
+td input{width:84px;text-align:right}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+.row label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mu)}
+.row input,.row select{width:104px}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer;font:inherit}
+.btn.alt{background:var(--s2);color:var(--tx);border:1px solid var(--bd)}
+.x{background:none;border:0;color:var(--mu);cursor:pointer;font-size:16px}
+.bar{height:8px;background:var(--s2);border-radius:4px;overflow:hidden;min-width:90px}.bar i{display:block;height:100%;background:var(--ac)}
+.note{color:var(--mu);font-size:12px;margin:6px 0}
+.warn{border-left:3px solid var(--r);padding:8px 12px;background:var(--s1);border-radius:6px;margin:8px 0}
+.info{border-left:3px solid var(--ac);padding:8px 12px;background:var(--s1);border-radius:6px;margin:8px 0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chip{background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:16px;padding:5px 12px;cursor:pointer;font:inherit}.chip.on{border-color:var(--ac);color:var(--ac)}
+svg{width:100%;height:auto;display:block}
+@media(max-width:640px){main{padding:12px}.big{font-size:20px}}
+</style></head><body>
+<header><span class="logo">TERMINAL</span><nav id="nav"></nav><span class="mu" style="margin-left:auto;font-size:12px">Prices are entered by you · hypothetical analysis, not advice</span></header>
+<main id="app"></main>
+<script>
+var KEY="terminal_v1",TABS=["Overview","Holdings","Options","Exposure","Stress test"];
+var ETFP={QQQ:"NVDA:9,MSFT:8.5,AAPL:8,AMZN:5,AVGO:5,META:3.5,GOOGL:3.5,TSLA:3",SPY:"NVDA:7,MSFT:6.5,AAPL:6.5,AMZN:3.8,META:2.7,AVGO:2.4,GOOGL:2,TSLA:1.8",VTI:"NVDA:6,MSFT:5.5,AAPL:5.5,AMZN:3.2,META:2.3,AVGO:2,GOOGL:1.8,TSLA:1.5"};
+var SEC=["Technology","Financials","Healthcare","Consumer","Energy","Industrials","Other","Diversified ETF","Bond","Cash"];
+var S={tab:"Overview",h:[],o:[],r:4.5,sel:"",inc:true,mkt:-20,sec:"",demo:true};
+try{var d=JSON.parse(localStorage.getItem(KEY)||"null");if(d)S=Object.assign(S,d)}catch(e){}
+if(!S.h.length&&S.demo===true&&!S.o.length){S.h=[
+{t:"NVDA",ty:"stock",sh:20,cost:90,px:140,sec:"Technology",beta:1.7,top:""},
+{t:"AAPL",ty:"stock",sh:30,cost:150,px:230,sec:"Technology",beta:1.1,top:""},
+{t:"JPM",ty:"stock",sh:15,cost:140,px:240,sec:"Financials",beta:1.1,top:""},
+{t:"QQQ",ty:"etf",sh:25,cost:380,px:520,sec:"Diversified ETF",beta:1.15,top:ETFP.QQQ},
+{t:"SPY",ty:"etf",sh:20,cost:450,px:600,sec:"Diversified ETF",beta:1,top:ETFP.SPY},
+{t:"BND",ty:"bond",sh:60,cost:74,px:72,sec:"Bond",beta:.1,top:""}];
+S.o=[{u:"NVDA",k:"C",side:1,K:150,exp:fut(90),prem:8,q:2,iv:55,spot:140}]}
+function fut(n){var d=new Date(Date.now()+n*864e5);return d.toISOString().slice(0,10)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function $f(n){return(n<0?"-":"")+"$"+Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:0})}
+function $2(n){return(n<0?"-":"")+"$"+Math.abs(n).toFixed(2)}
+function pc(n,d){return(n>=0?"+":"")+n.toFixed(d==null?1:d)+"%"}
+function cl(n){return n>=0?"up":"dn"}
+function num(v){var x=parseFloat(v);return isNaN(x)?0:x}
+function val(h){return h.sh*h.px}
+/* Black-Scholes */
+function cdf(x){var t=1/(1+.2316419*Math.abs(x)),p=.3989423*Math.exp(-x*x/2)*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p}
+function pdf(x){return Math.exp(-x*x/2)*.3989423}
+function bs(o,spot,T){var S0=spot,K=o.K,r=S.r/100,v=o.iv/100,call=o.k=="C";T=Math.max(T,1e-4);
+var d1=(Math.log(S0/K)+(r+v*v/2)*T)/(v*Math.sqrt(T)),d2=d1-v*Math.sqrt(T),df=Math.exp(-r*T);
+var p=call?S0*cdf(d1)-K*df*cdf(d2):K*df*cdf(-d2)+0-S0*cdf(-d1);
+var delta=call?cdf(d1):cdf(d1)-1,vega=S0*pdf(d1)*Math.sqrt(T)/100;
+var th=(-S0*pdf(d1)*v/(2*Math.sqrt(T))-(call?1:-1)*r*K*df*(call?cdf(d2):cdf(-d2)))/365;
+return{p:p,delta:delta,vega:vega,theta:th}}
+function Tof(o){return Math.max((new Date(o.exp)-Date.now())/(365*864e5),1e-4)}
+function days(o){return Math.max(0,Math.round((new Date(o.exp)-Date.now())/864e5))}
+function ovalue(o,spot){return o.side*o.q*100*bs(o,spot,Tof(o)).p}
+function exposure(){var m={};S.h.forEach(function(h){var v=val(h);
+if(h.ty=="etf"&&h.top){h.top.split(",").forEach(function(p){var a=p.split(":"),t=(a[0]||"").trim().toUpperCase(),w=num(a[1]);if(!t)return;m[t]=m[t]||{d:0,i:0,via:{}};m[t].i+=v*w/100;m[t].via[h.t]=(m[t].via[h.t]||0)+v*w/100})}
+else{var t=h.t.toUpperCase();m[t]=m[t]||{d:0,i:0,via:{}};m[t].d+=v}});return m}
+function totals(){var inv=0,cost=0;S.h.forEach(function(h){inv+=val(h);cost+=h.sh*h.cost});
+var ov=0;S.o.forEach(function(o){ov+=ovalue(o,o.spot)});return{inv:inv,cost:cost,ov:ov}}
+function go(t){S.tab=t;save();render()}
+function render(){document.getElementById("nav").innerHTML=TABS.map(function(t){return'<button class="'+(t==S.tab?"on":"")+'" onclick="go(\''+t+'\')">'+t+'</button>'}).join("");
+var f={Overview:vOver,Holdings:vHold,Options:vOpt,Exposure:vExp,"Stress test":vStress}[S.tab];document.getElementById("app").innerHTML=f()}
+/* Overview */
+function vOver(){var T=totals(),pl=T.inv-T.cost,e=exposure(),arr=Object.keys(e).map(function(k){return[k,e[k].d+e[k].i]}).sort(function(a,b){return b[1]-a[1]}),tot=T.inv||1;
+var sec={};S.h.forEach(function(h){sec[h.sec]=(sec[h.sec]||0)+val(h)});
+var ins=[];if(arr[0]&&arr[0][1]/tot>.15)ins.push('<div class="warn"><b>'+esc(arr[0][0])+'</b> is about '+(arr[0][1]/tot*100).toFixed(1)+'% of your portfolio once ETFs are looked through ('+$f(arr[0][1])+'). See the Exposure tab.</div>');
+var top3=arr.slice(0,3).reduce(function(a,b){return a+b[1]},0);ins.push('<div class="info">Your top 3 underlying companies are '+(top3/tot*100).toFixed(1)+'% of the portfolio.</div>');
+S.o.forEach(function(o){if(days(o)<=14)ins.push('<div class="warn">'+esc(o.u)+' '+o.K+(o.k=="C"?" call":" put")+' expires in '+days(o)+' days.</div>')});
+var dd=0;S.o.forEach(function(o){dd+=o.side*o.q*100*bs(o,o.spot,Tof(o)).delta*o.spot});
+return(S.demo?'<div class="info">You are viewing <b>sample data</b>. Go to Holdings to clear it and enter your own positions.</div>':'')+
+'<div class="grid"><div class="card"><div class="lbl">Stocks &amp; ETFs</div><div class="big">'+$f(T.inv)+'</div></div>'+
+'<div class="card"><div class="lbl">Unrealized P&amp;L</div><div class="big '+cl(pl)+'">'+$f(pl)+' <span style="font-size:14px">'+pc(T.cost?pl/T.cost*100:0)+'</span></div></div>'+
+'<div class="card"><div class="lbl">Options (theoretical)</div><div class="big">'+$f(T.ov)+'</div></div>'+
+'<div class="card"><div class="lbl">Option dollar delta</div><div class="big">'+$f(dd)+'</div></div></div>'+
+'<h2>Insights from your data</h2>'+ins.join("")+
+'<h2>Allocation by sector</h2><div class="card">'+Object.keys(sec).sort(function(a,b){return sec[b]-sec[a]}).map(function(k){return'<div style="display:grid;grid-template-columns:130px 1fr 90px;gap:10px;align-items:center;margin:6px 0"><span>'+esc(k)+'</span><div class="bar"><i style="width:'+(sec[k]/tot*100)+'%"></i></div><span style="text-align:right">'+(sec[k]/tot*100).toFixed(1)+'%</span></div>'}).join("")+'</div>'+
+'<h2>Holdings by weight</h2><div class="card">'+S.h.slice().sort(function(a,b){return val(b)-val(a)}).map(function(h){return'<div style="display:grid;grid-template-columns:130px 1fr 90px;gap:10px;align-items:center;margin:6px 0"><span>'+esc(h.t)+'</span><div class="bar"><i style="width:'+(val(h)/tot*100)+'%"></i></div><span style="text-align:right">'+(val(h)/tot*100).toFixed(1)+'%</span></div>'}).join("")+'</div>'}
+/* Holdings */
+function vHold(){return'<h2 style="margin-top:0">Add a position</h2><div class="row card">'+
+'<label>Ticker<input id="a_t" placeholder="AAPL"></label><label>Type<select id="a_ty"><option value="stock">Stock</option><option value="etf">ETF / fund</option><option value="bond">Bond</option><option value="cash">Cash</option></select></label>'+
+'<label>Shares<input id="a_sh" type="number" step="any"></label><label>Avg cost / share<input id="a_c" type="number" step="any"></label><label>Price now<input id="a_p" type="number" step="any"></label>'+
+'<label>Sector<select id="a_s">'+SEC.map(function(s){return'<option>'+s+'</option>'}).join("")+'</select></label><label>Beta<input id="a_b" type="number" step="any" value="1"></label><button class="btn" onclick="addH()">Add</button></div>'+
+'<h2>Your positions</h2><div class="tw card"><table><tr><th>Ticker</th><th>Type</th><th>Shares</th><th>Avg cost</th><th>Price</th><th>Value</th><th>P&amp;L</th><th>Beta</th><th></th></tr>'+
+S.h.map(function(h,i){var pl=h.sh*(h.px-h.cost);return'<tr><td><b>'+esc(h.t)+'</b> <span class="mu">'+esc(h.sec)+'</span></td><td>'+h.ty+'</td><td><input type="number" value="'+h.sh+'" onchange="ed('+i+',\'sh\',this.value)"></td><td><input type="number" value="'+h.cost+'" onchange="ed('+i+',\'cost\',this.value)"></td><td><input type="number" value="'+h.px+'" onchange="ed('+i+',\'px\',this.value)"></td><td>'+$f(val(h))+'</td><td class="'+cl(pl)+'">'+$f(pl)+'</td><td><input type="number" step="any" value="'+h.beta+'" onchange="ed('+i+',\'beta\',this.value)"></td><td><button class="x" onclick="delH('+i+')">✕</button></td></tr>'}).join("")+'</table></div>'+
+'<p class="note">Update prices by editing the Price column — this app has no live feed, so values are only as current as what you type.</p>'+
+'<h2>Bulk import</h2><div class="card"><div class="note">Paste rows from your brokerage export or spreadsheet: <code>ticker, shares, avg cost, price</code> (one per line). Add ,etf as a 5th column for funds.</div><textarea id="csv" rows="4" style="width:100%" placeholder="AAPL,30,150,230&#10;QQQ,25,380,520,etf"></textarea><div class="row" style="margin-top:8px"><button class="btn" onclick="imp(false)">Add rows</button><button class="btn alt" onclick="imp(true)">Replace all positions</button><button class="btn alt" onclick="clr()">Clear everything</button></div></div>'}
+function addH(){var g=function(i){return document.getElementById(i).value},t=g("a_t").trim().toUpperCase();if(!t)return;var ty=g("a_ty");
+S.h.push({t:t,ty:ty,sh:num(g("a_sh")),cost:num(g("a_c")),px:num(g("a_p")),sec:g("a_s"),beta:num(g("a_b")),top:ETFP[t]||""});S.demo=false;save();render()}
+function ed(i,k,v){S.h[i][k]=num(v);save();render()}
+function delH(i){S.h.splice(i,1);S.demo=false;save();render()}
+function imp(rep){var rows=document.getElementById("csv").value.split(/\n/),n=[];rows.forEach(function(r){var a=r.split(/[,\t]/).map(function(x){return x.trim()});if(!a[0]||isNaN(parseFloat(a[1])))return;var t=a[0].toUpperCase(),etf=/etf|fund/i.test(a[4]||"")||!!ETFP[t];n.push({t:t,ty:etf?"etf":"stock",sh:num(a[1]),cost:num(a[2]),px:num(a[3])||num(a[2]),sec:etf?"Diversified ETF":"Other",beta:1,top:ETFP[t]||""})});
+S.h=rep?n:S.h.concat(n);S.demo=false;save();render()}
+function clr(){if(!confirm("Delete all positions and options?"))return;S.h=[];S.o=[];S.demo=false;save();render()}
+/* Options */
+function vOpt(){var us=[];S.o.forEach(function(o){if(us.indexOf(o.u)<0)us.push(o.u)});if(us.indexOf(S.sel)<0)S.sel=us[0]||"";
+var tbl=S.o.length?'<div class="tw card"><table><tr><th>Position</th><th>Expiry</th><th>Spot</th><th>Premium</th><th>IV%</th><th>Theo. value</th><th>P&amp;L</th><th>Delta</th><th>Theta/day</th><th>Vega</th><th></th></tr>'+S.o.map(function(o,i){var b=bs(o,o.spot,Tof(o)),v=o.side*o.q*100*b.p,c=o.side*o.q*100*o.prem,pl=v-c,m=o.side*o.q*100;
+return'<tr><td><b>'+(o.side>0?"Long ":"Short ")+o.q+'× '+esc(o.u)+' '+o.K+(o.k=="C"?"C":"P")+'</b></td><td>'+o.exp+' ('+days(o)+'d)</td><td><input type="number" step="any" value="'+o.spot+'" onchange="eo('+i+',\'spot\',this.value)"></td><td>'+$2(o.prem)+'</td><td><input type="number" value="'+o.iv+'" onchange="eo('+i+',\'iv\',this.value)"></td><td>'+$f(v)+'</td><td class="'+cl(pl)+'">'+$f(pl)+'</td><td>'+(b.delta*m).toFixed(1)+'</td><td>'+$f(b.theta*m)+'</td><td>'+$f(b.vega*m)+'</td><td><button class="x" onclick="delO('+i+')">✕</button></td></tr>'}).join("")+'</table></div>':'<div class="info">No options yet. Add one below.</div>';
+return'<h2 style="margin-top:0">Add an option position</h2><div class="row card"><label>Underlying<input id="o_u" placeholder="NVDA"></label><label>Type<select id="o_k"><option value="C">Call</option><option value="P">Put</option></select></label><label>Side<select id="o_s"><option value="1">Long (bought)</option><option value="-1">Short (sold)</option></select></label><label>Strike<input id="o_K" type="number" step="any"></label><label>Expiry<input id="o_e" type="date" value="'+fut(60)+'"></label><label>Premium paid/received<input id="o_p" type="number" step="any"></label><label>Contracts<input id="o_q" type="number" value="1"></label><label>Implied vol %<input id="o_i" type="number" value="40"></label><label>Underlying price<input id="o_sp" type="number" step="any"></label><button class="btn" onclick="addO()">Add</button></div>'+
+'<h2>Your options</h2>'+tbl+'<p class="note">Values use the Black-Scholes model with your IV and a '+S.r+'% risk-free rate (<input style="width:60px" type="number" step="0.1" value="'+S.r+'" onchange="S.r=num(this.value);save();render()">). They are theoretical estimates; real market quotes will differ. Premium is per share.</p>'+
+(us.length?'<h2>Payoff chart</h2><div class="chips">'+us.map(function(u){return'<button class="chip '+(u==S.sel?"on":"")+'" onclick="S.sel=\''+u+'\';render()">'+esc(u)+'</button>'}).join("")+'<label class="mu" style="margin-left:12px"><input type="checkbox" '+(S.inc?"checked":"")+' onchange="S.inc=this.checked;render()"> include my shares</label></div><div class="card">'+payoff()+'</div>':"")}
+function addO(){var g=function(i){return document.getElementById(i).value},u=g("o_u").trim().toUpperCase();if(!u||!g("o_K"))return;var h=S.h.filter(function(x){return x.t==u})[0];
+S.o.push({u:u,k:g("o_k"),side:num(g("o_s")),K:num(g("o_K")),exp:g("o_e"),prem:num(g("o_p")),q:num(g("o_q"))||1,iv:num(g("o_i"))||40,spot:num(g("o_sp"))||(h?h.px:num(g("o_K")))});S.demo=false;save();render()}
+function eo(i,k,v){S.o[i][k]=num(v);save();render()}
+function delO(i){S.o.splice(i,1);save();render()}
+function payoff(){var legs=S.o.filter(function(o){return o.u==S.sel});if(!legs.length)return"";var sp=legs[0].spot,h=S.h.filter(function(x){return x.t==S.sel})[0],sh=S.inc&&h?h.sh:0,sc=sh?h.px:0;
+var N=60,xs=[],ye=[],yn=[];for(var i=0;i<=N;i++){var s=sp*(.5+i/N);xs.push(s);var e=0,n=0;legs.forEach(function(o){var p=o.k=="C"?Math.max(s-o.K,0):Math.max(o.K-s,0);e+=o.side*o.q*100*(p-o.prem);n+=o.side*o.q*100*(bs(o,s,Math.max(Tof(o)-Math.min(30,days(o))/365,1e-4)).p-o.prem)});
+var st=sh*(s-sc);ye.push(e+st);yn.push(n+st)}
+var all=ye.concat(yn),mn=Math.min.apply(null,all.concat([0])),mx=Math.max.apply(null,all.concat([0])),W=700,H=300,P=44,rg=(mx-mn)||1;
+var X=function(s){return P+(s-xs[0])/(xs[N]-xs[0])*(W-P-10)},Y=function(v){return 10+(mx-v)/rg*(H-30)};
+var path=function(a){return a.map(function(v,i){return(i?"L":"M")+X(xs[i]).toFixed(1)+","+Y(v).toFixed(1)}).join("")};
+var be=[];for(i=1;i<=N;i++)if(ye[i-1]*ye[i]<0)be.push(xs[i-1]+(xs[i]-xs[i-1])*(-ye[i-1])/(ye[i]-ye[i-1]));
+return'<svg viewBox="0 0 '+W+' '+H+'"><line x1="'+P+'" x2="'+(W-10)+'" y1="'+Y(0)+'" y2="'+Y(0)+'" stroke="var(--bd)"/><line x1="'+X(sp)+'" x2="'+X(sp)+'" y1="10" y2="'+(H-20)+'" stroke="var(--mu)" stroke-dasharray="4"/>'+
+'<path d="'+path(yn)+'" fill="none" stroke="var(--ac)" stroke-width="2" stroke-dasharray="5 3"/><path d="'+path(ye)+'" fill="none" stroke="var(--g)" stroke-width="2.5"/>'+
+'<text x="'+P+'" y="'+(Y(mx)+12)+'" fill="var(--mu)" font-size="11">'+$f(mx)+'</text><text x="'+P+'" y="'+(Y(mn)-2)+'" fill="var(--mu)" font-size="11">'+$f(mn)+'</text>'+
+'<text x="'+X(xs[0])+'" y="'+(H-4)+'" fill="var(--mu)" font-size="11">$'+xs[0].toFixed(0)+'</text><text x="'+(W-50)+'" y="'+(H-4)+'" fill="var(--mu)" font-size="11">$'+xs[N].toFixed(0)+'</text><text x="'+(X(sp)+4)+'" y="'+(H-4)+'" fill="var(--mu)" font-size="11">spot $'+sp+'</text></svg>'+
+'<div class="note"><span class="up">━</span> at expiration · <span style="color:var(--ac)">┅</span> theoretical, 30 days from now (or at expiry if sooner) · Max profit shown '+$f(mx)+', max loss '+$f(mn)+' in this range · Break-even'+(be.length?': $'+be.map(function(b){return b.toFixed(2)}).join(", $"):': none in range')+'</div>'}
+/* Exposure */
+function vExp(){var e=exposure(),T=totals().inv||1,arr=Object.keys(e).map(function(k){return{t:k,d:e[k].d,i:e[k].i,v:e[k].via}}).sort(function(a,b){return b.d+b.i-a.d-a.i});
+var etfs=S.h.filter(function(h){return h.ty=="etf"});
+return'<h2 style="margin-top:0">Look-through exposure</h2><div class="note">Your true exposure to each company = shares you hold directly + its weight inside each ETF you own. This is what most brokerage apps never show.</div>'+
+'<div class="tw card"><table><tr><th>Company</th><th>Direct</th><th>Via ETFs</th><th>Total</th><th>% of portfolio</th><th></th></tr>'+arr.slice(0,25).map(function(a){var t=a.d+a.i;return'<tr><td><b>'+esc(a.t)+'</b> <span class="mu">'+Object.keys(a.v).map(function(k){return esc(k)+" "+$f(a.v[k])}).join(" · ")+'</span></td><td>'+$f(a.d)+'</td><td>'+$f(a.i)+'</td><td><b>'+$f(t)+'</b></td><td>'+(t/T*100).toFixed(1)+'%</td><td><div class="bar"><i style="width:'+Math.min(100,t/T*400)+'%"></i></div></td></tr>'}).join("")+'</table></div>'+
+'<h2>ETF holdings data (editable)</h2><div class="warn">Pre-filled weights are <b>rough approximations</b>, not live data. Copy current top holdings from your fund issuer\'s website for accuracy. Only the companies you list are counted, so totals are a lower bound.</div>'+
+(etfs.length?etfs.map(function(h){var i=S.h.indexOf(h),cov=(h.top||"").split(",").reduce(function(a,p){return a+num(p.split(":")[1])},0);return'<div class="card" style="margin:8px 0"><b>'+esc(h.t)+'</b> <span class="mu">covers '+cov.toFixed(1)+'% of the fund</span><input style="width:100%;margin-top:6px" value="'+esc(h.top||"")+'" placeholder="NVDA:9, MSFT:8.5, AAPL:8" onchange="S.h['+i+'].top=this.value;save();render()"></div>'}).join(""):'<div class="info">No ETFs yet. Add a position with type "ETF / fund" in Holdings.</div>')}
+/* Stress */
+var SC=[["−10% market",-10,""],["−20% market",-20,""],["−30% market",-30,""],["2008-style (−50%)",-50,""],["Tech −25%",-25,"Technology"],["Rally +15%",15,""]];
+function vStress(){var rows=[],tot0=0,tot1=0;
+S.h.forEach(function(h){var sh=(S.sec&&h.sec!=S.sec)?0:S.mkt*h.beta,v=val(h),n=v*(1+sh/100);tot0+=v;tot1+=n;rows.push([h.t,v,n-v,sh])});
+S.o.forEach(function(o){var h=S.h.filter(function(x){return x.t==o.u})[0],sh=h?((S.sec&&h.sec!=S.sec)?0:S.mkt*h.beta):(S.sec?0:S.mkt),v=ovalue(o,o.spot),n=ovalue(o,o.spot*(1+sh/100));tot0+=v;tot1+=n;rows.push([(o.side>0?"Long ":"Short ")+o.u+" "+o.K+o.k,v,n-v,sh])});
+rows.sort(function(a,b){return a[2]-b[2]});var d=tot1-tot0;
+return'<h2 style="margin-top:0">What if the market moves?</h2><div class="chips">'+SC.map(function(s){return'<button class="chip '+(S.mkt==s[1]&&S.sec==s[2]?"on":"")+'" onclick="S.mkt='+s[1]+';S.sec=\''+s[2]+'\';render()">'+s[0]+'</button>'}).join("")+'</div>'+
+'<div class="card row"><label style="flex:1;min-width:220px">Custom move: <b style="color:var(--tx)">'+pc(S.mkt,0)+'</b><input type="range" min="-60" max="40" value="'+S.mkt+'" style="width:100%" oninput="S.mkt=+this.value;S.sec=\'\';render()"></label></div>'+
+'<div class="grid" style="margin-top:12px"><div class="card"><div class="lbl">Estimated change</div><div class="big '+cl(d)+'">'+$f(d)+'</div></div><div class="card"><div class="lbl">Percent</div><div class="big '+cl(d)+'">'+pc(tot0?d/tot0*100:0)+'</div></div><div class="card"><div class="lbl">Portfolio after</div><div class="big">'+$f(tot1)+'</div></div></div>'+
+'<h2>Impact by position</h2><div class="tw card"><table><tr><th>Position</th><th>Now</th><th>Shock</th><th>Change</th></tr>'+rows.map(function(r){return'<tr><td>'+esc(r[0])+'</td><td>'+$f(r[1])+'</td><td>'+pc(r[3])+'</td><td class="'+cl(r[2])+'">'+$f(r[2])+'</td></tr>'}).join("")+'</table></div>'+
+'<p class="note">Hypothetical simulation. Each stock moves by market move × its beta (editable in Holdings); options are re-priced with Black-Scholes at the same IV, so real outcomes, especially IV changes, will differ. Not a forecast.</p>'}
+render();
+</script></body></html>
